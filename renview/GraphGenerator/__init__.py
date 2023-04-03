@@ -173,6 +173,9 @@ def input_output_directory(fname):
     '''
     global output_directory_name
     output_directory_name = fname
+    
+def get_species_populations():
+    return openmkm_species_surf_cov
 
 def erase_data():
     '''
@@ -442,7 +445,7 @@ def generate_visualizations():
     #Populating all elements provided in input species file
     global rpa_local
     global is_surface_cov_def, header_count
-    input_species = pd.read_csv(species_filename, header = 0, delimiter = '\t')
+    input_species = pd.read_csv(species_filename, header = 0, delim_whitespace=True) #delimiter = '\t')
     for col in input_species.columns:
         if col == 'Species_name':
             header_count = header_count + 1
@@ -468,7 +471,7 @@ def generate_visualizations():
                     composition[Elements_Available[j-int(header_count)]] = words[j]
             openmkm_species_composition.append(composition)
     
-    TotalSpecies = len(openmkm_species_list)        
+    TotalSpecies = len(openmkm_species_list)     
     #Populating reactions datastructures 
     with open(reactions_filename, 'r') as f_ptr:
         for i in range(1):
@@ -557,6 +560,8 @@ def generate_visualizations():
                     product_without_coeff.append(prod_string)
             openmkm_reaction_products.append(product_without_coeff)
             global stoich_matrix
+            #print('sm',stoich_matrix.ndim)
+            #print('sl',stoich_list.ndim)
             if len(openmkm_reaction_netrate) == 1:
                 stoich_matrix = stoich_list
             else:
@@ -677,18 +682,18 @@ def generate_visualizations():
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) < 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(openmkm_species_list[i]) + '"->"' + str(prod) + '"\n')
                             else:
                                 linewidth = abs(int(rpa_local[i][j]/20)) + int(1)
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) < 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(openmkm_species_list[i]) + '"->"' + str(prod) + '"\n')
             if float(rpa_local[i][j]) <= 0.0 and float(stoich_matrix[i][j]) != 0.0 and float(stoich_matrix[i][j]) > 0.0:
                 for reac in openmkm_reaction_reactants[j]:
@@ -701,18 +706,18 @@ def generate_visualizations():
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) < 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   '  + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(openmkm_species_list[i]) + '"->"' + str(reac) + '"\n')
                             else:
                                 linewidth = abs(int(rpa_local[i][j]/20)) + int(1)
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) < 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(openmkm_species_list[i]) + '"->"' + str(reac) + '"\n')
             if float(rpa_local[i][j]) >= 0.0 and float(stoich_matrix[i][j]) != 0.0 and float(stoich_matrix[i][j]) < 0.0:
                 for prod in openmkm_reaction_products[j]:
@@ -725,18 +730,18 @@ def generate_visualizations():
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) > 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   '  + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(prod) + '"->"' + str(openmkm_species_list[i]) + '"\n')
                             else:
                                 linewidth = abs(int(rpa_local[i][j]/20)) + int(1)
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) > 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   '  + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j])) + str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(prod) + '"->"' + str(openmkm_species_list[i]) + '"\n')
             if float(rpa_local[i][j]) >= 0.0 and float(stoich_matrix[i][j]) != 0.0 and float(stoich_matrix[i][j]) > 0.0:
                 for reac in openmkm_reaction_reactants[j]:
@@ -749,18 +754,18 @@ def generate_visualizations():
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) > 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=green,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j]))+ str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(reac) + '"->"' + str(openmkm_species_list[i]) + '"\n')
                             else:
                                 linewidth = abs(int(rpa_local[i][j]/20)) + int(1)
                                 arrowsize = abs(int(rpa_local[i][j]/60)) + int(1)
                                 edgelabel = abs(int(rpa_local[i][j]))
                                 if float(rpa_local[i][j]) > 0.0:
-                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="forward",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   '  + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j])) + str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 else:
-                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(edgelabel) + '%   ' + str(abs(float(openmkm_reaction_netrate[j]))) + ' mol/s    ' + str(openmkm_reaction_pei[j]) + '"];\n')
+                                    f.write('edge[dir="none",style="setlinewidth(' + str(linewidth) + ')",color=black,weight=2,arrowsize=' + str(arrowsize) + ',label="   ' + str(j) + '   ' + str(openmkm_reaction_strings[j]) + '     {:.3g} mol/s    '.format(float(openmkm_reaction_netrate[j])) + str(edgelabel) + '%   ' + str(openmkm_reaction_pei[j]) + '"];\n')
                                 f.write('"' + str(reac) + '"->"' + str(openmkm_species_list[i]) + '"\n')
         
         f.write('}')
